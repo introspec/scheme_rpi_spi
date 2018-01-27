@@ -34,8 +34,10 @@
     (#~bcm2835_spi_end)))
 
 (define spi-issue-cmd
-  (lambda (v) 
+  (lambda (oplen v) 
     (if (u8vector? v) 
-	(begin (#~bcm2835_spi_transfern v (u8vector-length v)) v)
+	(let ([len (u8vector-length v)])
+	  (begin (#~bcm2835_spi_transfern v len) 
+		 (if (= oplen 0) v (subu8vector v oplen len))))
 	#f)))
 
