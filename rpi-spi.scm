@@ -14,6 +14,7 @@
 (define SPI_CS_POLARITY_LOW (integer->char 0))
 (define SPI_CS_POLARITY_HIGH (integer->char 1))
 
+(define SPI_CLK_PI3_12P5M 32)
 (define SPI_CLK_PI3_25M 16)
 (define SPI_CLK_PI3_50M 8)
 
@@ -25,7 +26,7 @@
 	(#~bcm2835_spi_begin)
 	(#~bcm2835_spi_setDataMode SPI_MODE0)
 	;; - thunk via wrapper to pass in short arg to function
-	(#~bcm2835w_spi_setClockDivider SPI_CLK_PI3_50M)
+	(#~bcm2835w_spi_setClockDivider SPI_CLK_PI3_12P5M)
 	(#~bcm2835_spi_setChipSelectPolarity SPI_CS0 SPI_CS_POLARITY_LOW)
 	(#~bcm2835_spi_chipSelect SPI_CS0))))
 
