@@ -21,3 +21,9 @@ bcm2835w_vector_append(
     dest[dest_offset++] = src[count];
 }
 
+void
+bcm2835w_i2c_setClockDivider(uint32_t divider)
+{
+  uint16_t div = (uint16_t) (divider & 0xffff);
+  bcm2835_i2c_setClockDivider(div);
+}

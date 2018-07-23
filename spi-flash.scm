@@ -8,6 +8,7 @@
 
 (define spi-cmd-flash-chip-erase
   (lambda ()
+    (spi-cmd-flash-write-enable)
     (spi-issue-cmd 1 (u8vector #x60))))
 
 (define spi-cmd-flash-write-enable 	
@@ -71,7 +72,7 @@
     (lambda (addr)
       (spi-cmd-flash-erase #xD2 addr)))
 
-(define spi-cmd-flash-write
+(define spi-cmd-flash-write-page
   (lambda (addr data)
     (if (u8vector? data)
       (let* ([len (u8vector-length data)]
@@ -82,6 +83,49 @@
 	  (u8vector-set! v 2 (extract-addr-byte addr 1))
 	  (u8vector-set! v 3 (extract-addr-byte addr 0))
 	  (#~bcm2835w_vector_append v data 4 len)
+          (spi-cmd-flash-write-enable)
 	  (spi-issue-cmd 0 v)))
       #f)))
+
+(define flash-page-len 256)
+
+(define flash-write-wait
+  (lambda ()
+    (if (= 0 (bitwise-and 1 (u8vector-ref (spi-cmd-flash-read-status1) 0)))
+        #t
+        (flash-write-wait))))
+
+(define spi-cmd-flash-write-internal
+    (lambda (addr data len offset)
+        (if (u8vector? data)
+            (if (>= offset len)
+                #t
+                (begin
+                    (define x (min flash-page-len (- len offset)))
+                    (print (u8vector-length data) " " len " " offset " " x)
+                    (spi-cmd-flash-write-page (+ addr offset)
+                                              (subu8vector data 
+                                                           offset 
+                                                           (+ offset x)))
+                    (flash-write-wait)
+                    (spi-cmd-flash-write-internal 
+                                         addr data len 
+                                         (+ offset x))))
+            #f)))
+
+(define spi-cmd-flash-write
+    (lambda (addr data)
+        (if (u8vector? data)
+          (spi-cmd-flash-write-internal addr data 
+                                        (u8vector-length data) 0)
+          #f)))
+
+
+
+
+
+
+
+
+
 
